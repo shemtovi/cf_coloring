@@ -1,6 +1,4 @@
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-
 
 max_color_per_level = [-1]
 real_color_arr = [[]]
@@ -53,9 +51,11 @@ def print_plot(head, pointsCounter):
     x = [num for num in range(1, pointsCounter + 1)]
     y = linked_list_to_list(head)
     z = get_colors_list(head)
-    unique_colors = list(set(z))
-    # cmap = cm.get_cmap('viridis', len(unique_colors))
-    cmap = plt.cm.get_cmap('viridis', len(unique_colors))
+    unique_colors = []
+    for color in set(z):
+        unique_colors.append(color)
+
+    cmap = plt.cm.get_cmap('tab20', len(unique_colors))
 
     # Plot the first scatter graph on the first subplot
     sc1 = ax1.scatter(x, y, c=z, cmap=cmap)
@@ -128,8 +128,8 @@ def getLevel(prev, next):
     global max_color_per_level
     global max_level
     global real_color_arr
-    rightList = seesRight(next)
-    leftList = seesLeft(prev)
+    rightList = seesRightLevels(next)
+    leftList = seesLeftLevels(prev)
     level = min(findMin(rightList),findMin(leftList))
     if level>max_level:
         max_level = level
@@ -171,38 +171,42 @@ def getColor(level,prev, next):
 
 def seesLeftColor(curr ,level):
     arr= []
+    currMaxColor = -1
     while (curr!=None and curr.level <= level):
-        if curr.level ==  level:
+        if curr.level ==  level and curr.color > currMaxColor:
             arr.append(curr.color)
+            currMaxColor = curr.color
         curr = curr.prev
     return arr
 
     
 def seesRightColor(curr, level):       
     arr= []
+    currMaxColor = -1
     while (curr!=None and curr.level <= level):
-        if curr.level ==  level:
+        if curr.level ==  level and curr.color > currMaxColor:
             arr.append(curr.color)
+            currMaxColor = curr.color
         curr = curr.next
     return arr
 
-def seesRight(curr):
+def seesRightLevels(curr):
     arr= []
-    currMax = 0
+    currMaxLevel = 0
     while (curr!=None):
-        if curr.level>  currMax:
+        if curr.level>  currMaxLevel:
             arr.append(curr.level)
-            currMax = curr.level
+            currMaxLevel = curr.level
         curr = curr.next
     return arr
 
-def seesLeft(curr):
+def seesLeftLevels(curr):
     arr= []
-    currMax = 0
+    currMaxLevel = 0
     while (curr!=None):
-        if curr.level>  currMax:
+        if curr.level>  currMaxLevel:
             arr.append(curr.level)
-            currMax = curr.level
+            currMaxLevel = curr.level
         curr = curr.prev
     return arr
 
