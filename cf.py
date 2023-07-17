@@ -1,9 +1,9 @@
-import sys
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Button
 
 max_color_per_level = [-1]
+real_color_arr = [[]]
 max_level=0
+next_color = 0
 
 class point:
     def __init__(self, level ,color, prev, next):
@@ -13,14 +13,11 @@ class point:
         self.next = next
 
 def main():
+    global terminete
     head= None
     pointsCounter = 0 #points counter
-    while True:
-        index = int(input("please insert index between 0 and {}\n".format(pointsCounter)))
-        if index<0 or index> pointsCounter:
-            print("please insert a valid index\n")
-        else:
-            
+    index = 0
+    while index != -1:
             prev= None
             next = None
             if(index == 0):
@@ -42,24 +39,22 @@ def main():
                 head = newPoint
             pointsCounter=pointsCounter+1    
             curr = head
-            while(curr!=None): # print for debug
-                print("current point is: level-{}, color-{}".format(curr.level, curr.color))
-                curr = curr.next
-            print_2plot(head, pointsCounter)
+            index = print_2plot(curr,pointsCounter)
+            
 
 def print_plot(head, pointsCounter):
     plt.close()
     x = [num for num in range(1, pointsCounter + 1)]
     y = linked_list_to_list(head)
-    z = get_colors_list(head)
+    color = get_colors_list(head)
     # Set unique colors for each color value
-    unique_colors = list(set(z))
+    unique_colors = list(set(color))
 
     # Generate a color map based on the number of unique colors
     cmap = plt.cm.get_cmap('viridis', len(unique_colors))
 
     # Create the scatter plot
-    plt.scatter(x, y, c=z, cmap=cmap)
+    plt.scatter(x, y, c=color, cmap=cmap)
 
     # Add a colorbar legend
     cbar = plt.colorbar()
@@ -76,54 +71,74 @@ def print_plot(head, pointsCounter):
     plt.title('Coloring-Free Graph')
     # Display the graph
     plt.show(block=False)
-    
 
 def print_2plot(head, pointsCounter):
     plt.close()
-    x1 = [num for num in range(1, pointsCounter + 1)]
-    y1 = linked_list_to_list(head)
-    z1 = get_colors_list(head)
-    unique_colors = list(set(z1))
+    # Set up the figure with two subplots
+    fig, (ax1, ax2) = plt.subplots(2, 1)
 
-    # Generate a color map based on the number of unique colors
+    # Data for the first scatter graph
+    x = [num for num in range(1, pointsCounter + 1)]
+    y = linked_list_to_list(head)
+    z = get_colors_list(head)
+    unique_colors = list(set(z))
     cmap = plt.cm.get_cmap('viridis', len(unique_colors))
+    # Plot the first scatter graph on the first subplot
+    sc1 = ax1.scatter(x, y, c=z, cmap=cmap)
+    ax1.grid(axis='y', linestyle='--')
+    # Configure x-axis and y-axis ticks on the first graph
+    ax1.set_xticks(range(0, max(x) + 2))
+    ax1.set_yticks(range(0, max(y) + 2))
+    ax1.set_xlabel('Index')
+    ax1.set_ylabel('Level')
+    ax1.set_title('Level Graph Algorithm 1')
 
-    y2 = [1 for num in range(1, pointsCounter + 1)]
+    # Add a colorbar legend for the first scatter graph
+    cbar1 = plt.colorbar(sc1, ax=ax1)
+    cbar1.set_ticks(range(len(unique_colors)))
+    cbar1.set_ticklabels(unique_colors)
+    cbar1.set_label('Color')
 
-    # Create a figure with two subplots
-    fig, (ax1, ax2) = plt.subplots(1, 2)
 
-    # Plot first graph on the first subplot
-    ax1.scatter(x1, y1, c=z1, cmap=cmap)
-    ax1.set_xlabel('X1')
-    ax1.set_ylabel('Y1')
-    ax1.set_title('Graph 1')
+    y2 = [1 for num in range(1, pointsCounter + 1)]  # Modify this based on your second graph's y-values
 
-    # Plot second graph on the second subplot
-    ax1.scatter(x1, y2, c=z1, cmap=cmap)
-    ax2.set_xlabel('X2')
-    ax2.set_ylabel('Y2')
-    ax2.set_title('Graph 2')
+    # Plot the second scatter graph on the second subplot
+    ax2.scatter(x, y2, c=z, cmap=cmap)
+    ax2.grid(axis='y', linestyle='--')
+    ax2.set_xticks(range(0, max(x) + 2))
+    ax2.set_yticks(range(1, 2))
+    ax2.set_xlabel('Index')
+    ax2.set_title('Conflict-Free uniq maximum Graph 2')
+
+    x_click=[]
+    def on_click(event):
+            # Check if the click is within the plot area
+            if event.inaxes == ax2:
+                x_click.append(event.xdata)
+    # Connect the onclick event handler to the figure
+    def on_close(event):
+        global terminate
+        terminate = True
+        x_click.append(-1)
+    # Connect the close event handler function
+    fig.canvas.mpl_connect('button_press_event', on_click)
+    fig.canvas.mpl_connect('close_event', on_close)
 
     # Adjust the spacing between subplots
     plt.tight_layout()
+    # Display the graphs
+    plt.show(block=False)
+    #return x_click
+    while not x_click:
+        plt.waitforbuttonpress()
+    return int(x_click[0])
 
-    # Display the figure with both graphs
-    plt.show()    
 
 def get_colors_list(head):
-    global max_color_per_level
-    global max_level
-    adding_list = [0]
-    index = 0
-    #for i in range(1,len(max_color_per_level)-1):
-    for num in max_color_per_level: 
-        adding_list.append(num + adding_list[index] +1)
-        index = index + 1
     arr = []
     curr = head
     while(curr != None):
-        arr.append(curr.color + adding_list[curr.level])
+        arr.append(real_color_arr[curr.level][curr.color])
         curr = curr.next
     return arr    
 
@@ -139,16 +154,20 @@ def linked_list_to_list(head):
 def getLevel(prev, next):
     global max_color_per_level
     global max_level
+    global real_color_arr
     rightList = seesRight(next)
     leftList = seesLeft(prev)
     level = min(findMin(rightList),findMin(leftList))
     if level>max_level:
         max_level = level
         max_color_per_level.append(-1)
+        real_color_arr.append([])
     return level
 
 def getColor(level,prev, next):
+    global next_color
     global max_color_per_level
+    global real_color_arr
     rightListLevel = seesRightColor(next, level)
     leftListLevel = seesLeftColor(prev, level)
     rightSet = set()
@@ -164,12 +183,16 @@ def getColor(level,prev, next):
     while color < len(merged_set):
         if color in merged_set: 
             color = color + 1
-        else: 
+        else:  
             if color> max_color_per_level[level]:
                 max_color_per_level[level]= color
+                real_color_arr[level].append(next_color)
+                next_color = next_color + 1
             return color  
     if color> max_color_per_level[level]:
         max_color_per_level[level]= color
+        real_color_arr[level].append(next_color)
+        next_color = next_color + 1
     return color
 
 
