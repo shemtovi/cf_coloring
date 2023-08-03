@@ -1,9 +1,12 @@
+from matplotlib.colors import ListedColormap
 import matplotlib.pyplot as plt
+import numpy as np
 
 max_color_per_level = [-1]
 real_color_arr = [[]]
 max_level=0
 next_color = 0
+tab20_colors = plt.cm.tab20.colors
 
 class point:
     def __init__(self, level ,color, prev, next):
@@ -43,6 +46,7 @@ def main():
             
 
 def print_plot(head, pointsCounter):
+    global tab20_colors
     plt.close()
     # Set up the figure with two subplots
     fig, (ax1, ax2) = plt.subplots(2, 1)
@@ -53,9 +57,10 @@ def print_plot(head, pointsCounter):
     z = get_colors_list(head)
     unique_colors = []
     for color in set(z):
-        unique_colors.append(color)
+        unique_colors.append(tab20_colors[color])
 
-    cmap = plt.cm.get_cmap('tab20', len(unique_colors))
+    cmap = plt.cm.colors.ListedColormap(unique_colors)
+    
 
     # Plot the first scatter graph on the first subplot
     sc1 = ax1.scatter(x, y, c=z, cmap=cmap)
@@ -70,7 +75,7 @@ def print_plot(head, pointsCounter):
     # Add a colorbar legend for the first scatter graph
     cbar1 = plt.colorbar(sc1, ax=ax1)
     cbar1.set_ticks(range(len(unique_colors)))
-    cbar1.set_ticklabels(unique_colors)
+    cbar1.set_ticklabels(np.arange(len(unique_colors)))
     cbar1.set_label('Color')
 
 
